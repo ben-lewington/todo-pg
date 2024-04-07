@@ -1,0 +1,20 @@
+version: '3.9'
+
+name: 'todos'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: ./docker/app.Dockerfile
+      target: debug
+    environment:
+      DATABASE_URL: postgres://user:Password1!@db/database
+    volumes:
+      - ../src:/build/src
+  db:
+    build:
+      dockerfile: db.Dockerfile
+    env_file: ../.env
+    ports:
+      - 8432:5432
