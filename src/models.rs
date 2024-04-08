@@ -92,25 +92,30 @@ DELETE FROM todos.main
 ;
             "#,
             &ident,
-        ).execute(pool).await?.rows_affected() as usize)
+        )
+        .execute(pool)
+        .await?
+        .rows_affected() as usize)
     }
 
     pub fn render_display(&self) -> lfml::Markup {
         lfml::html! {
             li data-todo-id=(self.ident) {
-                p { (&self.name) }
                 ."" {
-                    button hx-get=(format!("/todos/{}/edit", self.ident))
-                        hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
-                        hx-swap="outerHTML"
-                    {
-                        "edit"
-                    }
-                    button hx-delete=(format!("/todos/{}", self.ident))
-                        hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
-                        hx-swap="delete"
-                    {
-                        "x"
+                    p { (&self.name) }
+                    ."" {
+                        button hx-get=(format!("/todos/{}/edit", self.ident))
+                            hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
+                            hx-swap="outerHTML"
+                        {
+                            "\u{1F58D}\u{FE0F}"
+                        }
+                        button hx-delete=(format!("/todos/{}", self.ident))
+                            hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
+                            hx-swap="delete"
+                        {
+                            "\u{274C}"
+                        }
                     }
                 }
             }
@@ -129,19 +134,13 @@ DELETE FROM todos.main
                             hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
                             hx-swap="outerHTML"
                         {
-                            "<-"
+                            "\u{21A9}\u{FE0F}"
                         }
                         button hx-put=(format!("/todos/{}", self.ident))
                             hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
                             hx-swap="outerHTML"
                         {
-                            "Confirm"
-                        }
-                        button hx-delete=(format!("/todos/{}", self.ident))
-                            hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
-                            hx-swap="outerHTML"
-                        {
-                            "X"
+                            "\u{2714}\u{FE0F}"
                         }
                     }
                 }

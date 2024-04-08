@@ -8,8 +8,8 @@ lfml::template!(pub base(inner: impl lfml::Render) {
             meta name="viewport" content="width=device-width, initial-scale=1";
             link href="/static/css/index.css" rel="stylesheet";
             link href="/static/favicon.ico" rel="icon" type="image/x-icon";
-            script src="/static/js/index.js" defer {}
-            script src="/static/thirdparty/htmx.min.js" type="module" defer {}
+            script src="/static/js/index.js" type="module" defer {}
+            script src="/static/js/vendor/htmx.min.js" defer {}
         }
         body { (inner) }
         script { "document.documentElement.classList.toggle('js-disabled')" }
@@ -33,24 +33,30 @@ impl<T: lfml::Render> lfml::Render for Hypermedia<T> {
 }
 
 lfml::template!(pub index(todos: &[Todo]) {
-    h1 {
-        "TODO"
-    }
-    ."" data-todos {
-        h2 { "Name" }
-        ol data-todo-list {
-            @for todo in todos { (todo.render_display()) }
+    ."" data-todo-app {
+        .todo-titlebar {
+            h1 { "TODO" }
+            ."" {
+                p { "# Todos: " span { (todos.len()) } }
+            }
         }
+        details .data-todo-table {
+            summary { h2 { "Name" } }
+            ol data-todo-list {
+                @for todo in todos { (todo.render_display()) }
+            }
+        }
+        h3 { "Add a new row" }
         form
             hx-post="/todos/new"
             hx-target="[data-todo-list]"
             hx-swap="beforeend"
         {
             label for="name" {
-                "Name: "
+                span { "Name " }
+                input name="name" type="text";
             }
-            input name="name" type="text";
-            button { "+" }
+            button { "\u{2795}" }
         }
     }
 });

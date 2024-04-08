@@ -1,45 +1,128 @@
 :root {
-    --todos-pad: 1rem;
+    --todo-bg-clr: none;
+    --todo-fg-clr: black;
+    --todo-bord-clr: black;
+    --todo-pad: 1rem;
+    --todo-gap: calc(var(--todo-pad) / 2);
+    --todo-bord-1: 1px solid;
+    --todo-bord-b1: var(--todo-bord-1) var(--todo-bord-clr);
+    --todo-btn-clr: white;
+    --todo-text-sz-sm: 8px;
+    --todo-text-sz: 10px;
+    --todo-text-sz-lg: 16px;
+    background-color: var(--todo-bg-clr);
+    color: var(--todo-fg-clr);
 }
 
-[data-todos] {
-    border: 1px solid #000;
+[data-todo-app] {
+    border: var(--todo-bord-b1);
+    border-radius: 2px;
+    width: fit-content;
 
-    h2 {
-        margin: 0;
-        margin-inline: var(--todos-pad);
-        padding-block: var(--todos-pad);
-        border-bottom: 1px solid #000;
+    form, button {
+        border: var(--todo-bord-1) var(--todo-bg-clr);
+        background-color: var(--todo-bg-clr);
+        font-size: var(--todo-text-sz);
     }
+
+    input {
+        border: var(--todo-bord-1) var(--todo-fg-clr);
+        border-radius: 2px;
+        font-size: var(--todo-text-sz);
+    }
+
+    > div:first-of-type {
+        padding-inline: var(--todo-pad);
+        border-bottom: var(--todo-bord-b1);
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: calc(2 * var(--todo-pad));
+        h1 {
+            margin-inline: var(--todo-pad);
+        }
+    }
+
+    > details {
+        margin-block-start: 2.5rem;
+        margin-block-end: 2rem;
+        position: relative;
+        > summary {
+            display:block;
+            position: absolute;
+            margin-inline-start: 1rem;
+            top: -1rem;
+            border: var(--todo-bord-b1);
+            border-radius: 2px;
+            background-color: white;
+            > h2 {
+                display: inline;
+                padding-inline-start: calc(var(--todo-pad) * 2);
+            }
+            &::after {
+                content: '\2195\FE0F';
+                font-size: var(--todo-text-sz-lg);
+                background-color: white;
+                padding-inline-start: calc(var(--todo-pad));
+                padding-inline-end: calc(var(--todo-pad) / 2);
+            }
+        }
+        &[open] {
+            summary:after {
+                content: '\2194\FE0F';
+            }
+            margin-block-end: 0;
+        }
+    }
+
+    h3 {
+        margin: 0;
+        margin-inline: var(--todo-pad);
+        padding-block-end: calc(var(--todo-pad) / 2);
+    }
+
     ol {
-        margin-block-start: 0;
-        padding-inline: var(--todos-pad);
+        font-size: var(--todo-text-sz);
+        margin-inline-start: var(--todo-pad);
+        padding-inline: var(--todo-pad);
         list-style-type: none;
         li {
-            &:where(:not(:has(> form))) {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid #000;
-                div {
-                    display: flex;
-                    gap: 0.5rem;
-                    button {
-                        height: fit-content;
-                    }
-                }
+            &:first-child {
+                border-top: var(--todo-bord-b1);
+                border-radius: 2px 2px 0 0;
+                padding-block-start: 0.5rem;
             }
-            &:where(:has(> form)) {
-                form {
-                    padding-block: var(--todos-pad);
-                    margin: 0;
-                    height: full;
+            &:last-child {
+                border-radius: 0 0 2px 2px;
+            }
+            border-bottom: var(--todo-bord-b1);
+            border-inline: var(--todo-bord-b1);
+            &:where(:not(:has(> form))) {
+                div {
                     display: flex;
                     flex-direction: row;
                     justify-content: space-between;
                     align-items: center;
-                    border-bottom: 1px solid #000;
+                    p {
+                        padding-inline: var(--todo-pad);
+                    }
+                    div {
+                        display: flex;
+                        gap: var(--todo-gap);
+                    }
+                }
+            }
+
+            &:where(:has(> form)) {
+                form {
+                    padding-block: var(--todo-pad);
+                    padding-inline: var(--todo-pad);
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;
+                    /* border-bottom: 1px solid #000; */
                     div {
                         display: flex;
                         gap: 0.5rem;
@@ -52,7 +135,31 @@
         }
     }
     > form {
-        padding-inline: var(--todos-pad);
-        padding-block-end: var(--todos-pad);
+        --todo-lbl-offset-top: 0.55rem;
+        --todo-lbl-offset-left: -1.5rem;
+        label {
+            position: relative;
+            margin-block-start: var(--todo-lbl-offset-top);
+            margin-inline-start: var(--todo-pad);
+            span {
+                position: absolute;
+                top: calc(-1 * var(--todo-lbl-offset-top));
+                left: calc(var(--todo-lbl-offset-left) / 4);
+                background-color: white;
+                padding-inline: 0.5rem;
+                border: var(--todo-bord-b1);
+                border-radius: 2px;
+            }
+            input {
+                padding-block-start: 0.5rem;
+            }
+            font-size: var(--todo-text-sz-sm);
+        }
+
+        display: flex;
+        flex-direction: row;
+        justify-content: left;
+        padding-inline: var(--todo-pad);
+        padding-block-end: var(--todo-pad);
     }
 }
