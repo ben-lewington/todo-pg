@@ -49,6 +49,14 @@ async fn main() -> Result<()> {
             ),
         )
         .route(
+            "/scratch",
+            axum::routing::get(
+                || async move {
+                    Hypermedia::Document(views::scratch()).markup().into_response()
+                },
+            ),
+        )
+        .route(
             "/todos",
             axum::routing::get(|State(pool): State<PgPool>| async move {
                 let Ok(todos) = Todo::get_all(&pool).await else {
@@ -78,8 +86,8 @@ async fn main() -> Result<()> {
                     todo.render_display().into_response()
                 }
             ).put(
-                |State(pool): State<PgPool>, Form(EditTodo { name, ident }): Form<EditTodo>| async move {
-                    let Ok(todo) = Todo::edit(&pool, ident, name).await else {
+                |State(pool): State<PgPool>, Form(EditTodo { name, ident, completed }): Form<EditTodo>| async move {
+                    let Ok(todo) = Todo::edit(&pool, ident, name, completed).await else {
                         return axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response();
                     };
                     todo.render_display().into_response()

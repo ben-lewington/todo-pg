@@ -2,11 +2,27 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
+use sqlx::types::time::OffsetDateTime;
+
+pub trait Model<Db, T: Sized, Idx: Copy> {
+    type DbErr;
+    // both of these are structural subtypes of T
+    type NewT;
+    type EditT;
+
+    fn new(pool: &Db, data: Self::NewT) -> core::result::Result<T, Self::DbErr>;
+    fn edit_by_idx(pool: &Db, data: Self::EditT) -> core::result::Result<T, Self::DbErr>;
+    fn get_by_idx(pool: &Db, id: Idx) -> core::result::Result<T, Self::DbErr>;
+    fn get_all(pool: &Db) -> core::result::Result<Vec<T>, Self::DbErr>;
+    fn delete_by_idx(pool: &Db, id: Idx) -> core::result::Result<T, Self::DbErr>;
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Todo {
     pub id: i32,
     pub ident: uuid::Uuid,
     pub name: String,
+    pub completed: Option<OffsetDateTime>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -18,6 +34,7 @@ pub struct NewTodo {
 pub struct EditTodo {
     pub ident: uuid::Uuid,
     pub name: String,
+    pub completed: bool,
 }
 
 impl Todo {
@@ -28,6 +45,7 @@ impl Todo {
 SELECT id
      , ident
      , name
+     , completed
   FROM todos.main
 ;
             "#
@@ -52,6 +70,7 @@ INSERT INTO todos.main (name)
             id: res.id,
             ident: res.ident,
             name,
+            completed: None,
         })
     }
 
@@ -63,16 +82,21 @@ INSERT INTO todos.main (name)
         )
     }
 
-    pub async fn edit(pool: &PgPool, ident: uuid::Uuid, name: String) -> Result<Todo> {
+    pub async fn edit(pool: &PgPool, ident: uuid::Uuid, name: String, completed: bool) -> Result<Todo> {
         let res = sqlx::query!(
             r#"
    UPDATE todos.main
       SET name = $1
-    WHERE ident = $2
-RETURNING id
+        , completed = CASE $2::bool
+                        WHEN true then now()
+                        ELSE null
+                      END
+    WHERE ident = $3
+RETURNING id, completed
 ;
             "#,
             &name,
+            completed,
             &ident,
         )
         .fetch_one(pool)
@@ -81,6 +105,7 @@ RETURNING id
             id: res.id,
             ident,
             name,
+            completed: res.completed,
         })
     }
 
@@ -102,7 +127,10 @@ DELETE FROM todos.main
         lfml::html! {
             li data-todo-id=(self.ident) {
                 ."" {
-                    p { (&self.name) }
+                    ."" {
+                        p { (&self.name) }
+                        p { (&self.completed.map(|d| d.to_string()).unwrap_or_else(|| "OPEN".into())) }
+                    }
                     ."" {
                         button hx-get=(format!("/todos/{}/edit", self.ident))
                             hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
@@ -127,8 +155,10 @@ DELETE FROM todos.main
             li data-todo-id=(self.ident) {
                 form hx-put=(format!("/todos/{}", self.ident)) {
                     // aria-labelledby
-                    input name="ident" hidden value=(self.ident);
-                    input name="name" type="text" value=(&self.name);
+                    ."" {
+                        input name="ident" hidden value=(self.ident);
+                        input name="name" type="text" value=(&self.name);
+                    }
                     ."" {
                         button hx-get=(format!("/todos/{}", self.ident))
                             hx-target=(format!("[data-todo-id=\"{}\"]", self.ident))
